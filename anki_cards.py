@@ -35,10 +35,10 @@ PROMPT = """Ты составляешь карточку Anki для русск�
 - explanation: определение на простом английском, 1–2 предложения
 - translation_ru: русские переводы основных значений
 - forms: список строк. verb и phrasal verb: ["V1: ...", "V2: ...", "V3: ...", "-ing: ..."]; adjective: ["comparative: ...", "superlative: ..."]; noun: ["singular: ...", "plural: ..."] или ["uncountable"]; phrase / idiom: 1–3 строки с вариантами и схемой употребления, например ["give the impression that + clause", "give the impression of + noun / -ing"]; adverb — пустой список
-- collocations: 6 частых коллокаций, каждая {{"en": ..., "ru": ...}}
-- synonyms: 3 синонима, каждый {{"en": ..., "ru": ...}}
+- collocations: до 6 коллокаций, каждая {{"en": ..., "ru": ...}}. Только те, что реально и часто встречаются у носителей (как в словарях Oxford, Cambridge, Longman). Ничего не выдумывай и не собирай механически из слова и случайных соседей. Не путай с похожими словами (не "conversely proportional", а "inversely proportional"). Каждая коллокация должна содержать само слово или фразу; синонимы и близкие по смыслу выражения сюда не клади. Если уверенных коллокаций меньше шести, дай меньше; если их нет, верни пустой список
+- synonyms: до 3 синонимов той же части речи, что и слово, каждый {{"en": ..., "ru": ...}}; только реально употребительные
 - examples: 3 примера, каждый {{"en": ..., "ru": ...}}; первый пример — это gap_sentence с вписанным словом
-- word_family: 3–5 однокоренных слов, каждое {{"en": ..., "ru": ...}}
+- word_family: до 5 однокоренных слов, каждое {{"en": ..., "ru": ...}}; только употребительные слова с тем же корнем, без редких и выдуманных. Если таких нет, верни пустой список
 - register: например "neutral", "formal", "informal", "neutral / formal"
 - level: уровень CEFR, например "B1"
 """
@@ -165,14 +165,14 @@ def build(c):
     ]
     if c["forms"]:
         blocks.append("Forms:<br>" + "<br>".join(c["forms"]))
-    blocks += [
-        "Collocations:<br>" + pairs(c["collocations"]),
-        "Synonyms:<br>" + pairs(c["synonyms"]),
-        "Example sentences:<br>" + examples,
-        "Word family:<br>" + pairs(c["word_family"], bullet=""),
-        f"Register: {c['register']}",
-        f"Level: {c['level']}",
-    ]
+    if c["collocations"]:
+        blocks.append("Collocations:<br>" + pairs(c["collocations"]))
+    if c["synonyms"]:
+        blocks.append("Synonyms:<br>" + pairs(c["synonyms"]))
+    blocks.append("Example sentences:<br>" + examples)
+    if c["word_family"]:
+        blocks.append("Word family:<br>" + pairs(c["word_family"], bullet=""))
+    blocks += [f"Register: {c['register']}", f"Level: {c['level']}"]
     return front, "<br><br>".join(blocks)
 
 

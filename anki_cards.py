@@ -17,6 +17,7 @@ HERE = Path(__file__).parent
 WORDS = HERE / "words.txt"
 DONE = HERE / "words_done.txt"
 GAP = "______"
+EXHAUSTED = set()
 
 PROMPT = """Ты составляешь карточку Anki для русскоязычного ученика, который учит английский.
 Слово или фраза: "{word}"
@@ -126,8 +127,10 @@ def generate(key, word, sentence, hint):
             "temperature": 0.4,
         },
     }
-    error = None
+    error = "лимит на всех моделях исчерпан"
     for model in MODELS:
+        if model in EXHAUSTED:
+            continue
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         for attempt in range(2):
             try:
@@ -137,9 +140,12 @@ def generate(key, word, sentence, hint):
                 error = f"Gemini {e.code}: {e.read().decode('utf-8', 'replace')[:300]}"
                 if e.code not in (429, 500, 503):
                     raise RuntimeError(error)
-                print(f"  {model}: {e.code}, пробую ещё")
                 if attempt == 0:
+                    print(f"  {model}: {e.code}, пробую ещё")
                     time.sleep(15)
+                elif e.code == 429:
+                    print(f"  {model}: лимит, дальше без неё")
+                    EXHAUSTED.add(model)
     raise RuntimeError(error)
 
 

@@ -191,8 +191,47 @@ def mark_done(line):
         f.write(line + "\n")
 
 
+def from_json(path):
+    cards = json.loads(Path(path).read_text(encoding="utf-8"))
+    anki("version")
+    lines = [l.strip() for l in WORDS.read_text(encoding="utf-8").splitlines() if l.strip()] if WORDS.exists() else []
+    added = skipped = failed = 0
+    for c in cards:
+        line = c.get("source", c.get("word", "")).strip()
+        print(f"{c.get('word', line)}:")
+        if "(" not in line and exists(c["word"]):
+            print("  уже есть в колоде")
+            skipped += 1
+        else:
+            try:
+                missing = [f for f in STRING_FIELDS + LIST_FIELDS if f not in c]
+                if missing:
+                    raise RuntimeError("нет полей: " + ", ".join(missing))
+                front, back = build(c)
+                anki("addNote", note={
+                    "deckName": DECK,
+                    "modelName": NOTE_TYPE,
+                    "fields": {"Front": front, "Back": back},
+                    "options": {"allowDuplicate": True},
+                })
+                print("  добавлено")
+                added += 1
+            except Exception as e:
+                print(f"  ошибка: {e}")
+                failed += 1
+                continue
+        mark_done(line)
+        if line in lines:
+            lines.remove(line)
+    if WORDS.exists():
+        WORDS.write_text("".join(l + "\n" for l in lines), encoding="utf-8")
+    print(f"\nдобавлено: {added}, дубли: {skipped}, ошибки: {failed}, осталось в words.txt: {len(lines)}")
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
+    if "--from-json" in sys.argv:
+        return from_json(sys.argv[sys.argv.index("--from-json") + 1])
     dry = "--dry-run" in sys.argv
     if not WORDS.exists():
         sys.exit("Нет words.txt")

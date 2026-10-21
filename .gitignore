@@ -2,3 +2,8 @@ words.txt
 words_done.txt
 __pycache__/
 .env
+cards.json
+batches/
+import_result.json
+rejected_cards.json
+run_*/

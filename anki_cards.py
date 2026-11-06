@@ -7,7 +7,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-DECK = "EnglishAuto"
+DECK = "EnglishAdv"
 NOTE_TYPE = "Простая (с вводом ответа)"
 MODELS = ["gemini-flash-latest", "gemini-3.5-flash", "gemini-flash-lite-latest"]
 ANKI_URL = "http://localhost:8765"
